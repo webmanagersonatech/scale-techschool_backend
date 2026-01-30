@@ -24,6 +24,6 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/joiner', joinersRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use('/api/settings', settingsRoutes);
-app.get('/', (req, res) => res.json({ ok: true, message: 'API is running' }));
+app.get('/', (req, res) => res.json({ ok: true, message: ' Tech API is running' }));
 
 export default app;
