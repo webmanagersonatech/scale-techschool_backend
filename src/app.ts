@@ -19,7 +19,12 @@ const app = express();
 connectDB();
 
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://160.187.54.80:3000',"https://scale-certifications.vercel.app","http://161.248.37.193:3005"], // frontend URLs
+    origin: [
+        'http://localhost:3000',
+        'http://160.187.54.80:3000',
+        'http://161.248.37.193:3005',
+        'https://scale-certifications.vercel.app'
+    ],
     credentials: true,
 }));
 
