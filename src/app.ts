@@ -66,7 +66,7 @@ app.use('/api/settings', settingsRoutes);
 app.get('/', (req, res) => {
     res.json({
         ok: true,
-        message: 'Tech API is running'
+        message: 'Techs API is running'
     });
 });
 
