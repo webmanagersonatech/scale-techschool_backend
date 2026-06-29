@@ -1,23 +1,30 @@
 import express from 'express';
 import cors from 'cors';
-import { connectDB } from './config/db';
 import path from 'path';
-import contactRoutes from './modules/contact/routes';
-import joinersRoutes from './modules/joiners/routes'
-import authRoutes from './modules/auth/auth.routes';;
-import settingsRoutes from './modules/settings/routes';
-import otpRoutes from './modules/otp/routes'
-import { logger } from './middlewares/logger';
 import dotenv from 'dotenv';
-import studentRoutes from './modules/students/routes'; 
 import cookieParser from 'cookie-parser';
+
+import { connectDB } from './config/db';
+
+import contactRoutes from './modules/contact/routes';
+import joinersRoutes from './modules/joiners/routes';
+import authRoutes from './modules/auth/auth.routes';
+import settingsRoutes from './modules/settings/routes';
+import otpRoutes from './modules/otp/routes';
+
+import { logger } from './middlewares/logger';
+
 
 dotenv.config();
 
 const app = express();
 
+
+// Database
 connectDB();
 
+
+// CORS
 app.use(cors({
     origin: [
         'http://localhost:3000',
@@ -25,26 +32,43 @@ app.use(cors({
         'http://161.248.37.193:3005',
         'https://scale-certifications.vercel.app'
     ],
-    credentials: true,
+    credentials: true
 }));
 
 
+// Middlewares
 app.use(express.json({ limit: "100mb" }));
-app.use(express.json());
 app.use(cookieParser());
 
 app.use(logger);
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-app.use(cors());
-app.use(express.json());
-app.use(logger);
+
+// Static uploads
+app.use(
+    '/uploads',
+    express.static(path.join(__dirname, '../uploads'))
+);
+
+
+// Routes
 app.use('/api/auth', authRoutes);
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 app.use('/api/joiner', joinersRoutes);
-app.use("/api/contacts", contactRoutes);
+
+app.use('/api/contacts', contactRoutes);
+
 app.use('/api/otp', otpRoutes);
+
 app.use('/api/settings', settingsRoutes);
-app.get('/', (req, res) => res.json({ ok: true, message: ' Tech API is running' }));
+
+
+// Health check
+app.get('/', (req, res) => {
+    res.json({
+        ok: true,
+        message: 'Tech API is running'
+    });
+});
+
 
 export default app;
