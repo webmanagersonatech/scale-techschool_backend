@@ -96,6 +96,7 @@ export const listStudents = async (req: Request, res: Response) => {
     const limit = Number(req.query.limit) || 10;
     const search = (req.query.search as string) || "";
     const event = (req.query.event as string) || "";
+    const dateRange = (req.query.dateRange as string) || ""; // Add date range filter
 
     const query: any = {};
 
@@ -114,16 +115,46 @@ export const listStudents = async (req: Request, res: Response) => {
       query.events = { $regex: `^${event}$`, $options: "i" };
     }
 
-    const students = await (Student as any).paginate(query, {
-      page,
-      limit,
-      sort: { createdAt: -1 },
-      lean: true,
-    });
+    // Date range filter
+    if (dateRange && dateRange.trim() && dateRange !== "all") {
+      query.date = dateRange;
+    }
+
+    // Get both paginated students and distinct events
+    const [students, distinctEvents] = await Promise.all([
+      (Student as any).paginate(query, {
+        page,
+        limit,
+        sort: { createdAt: -1 },
+        lean: true,
+      }),
+      Student.aggregate([
+        { $match: {} }, // Get all distinct events (not filtered by search)
+        {
+          $group: {
+            _id: "$events",
+            dateRange: { $first: "$date" }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            eventName: "$_id",
+            dateRange: 1
+          }
+        },
+        { $sort: { eventName: 1 } }
+      ])
+    ]);
 
     return res.status(200).json({
       success: true,
       students,
+      distinctEvents,
+      eventStats: {
+        totalEvents: distinctEvents.length,
+        totalStudents: students.totalDocs,
+      }
     });
   } catch (err: any) {
     console.error("List students error:", err);
@@ -133,7 +164,6 @@ export const listStudents = async (req: Request, res: Response) => {
     });
   }
 };
-
 // Get Student
 export const getStudent = async (req: Request, res: Response) => {
   try {
