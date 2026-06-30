@@ -9,6 +9,7 @@ import {
   regenerateQR,
   downloadQR,
   getStudentByScaleId,
+  exportStudents
 } from "./controller";
 import { protect } from "../../middlewares/auth";
 
@@ -16,7 +17,7 @@ const router = Router();
 
 // Create Student
 router.post("/", protect, createStudent);
-
+router.get("/export",protect, exportStudents);
 // List Students
 router.get("/", protect, listStudents);
 router.get("/certification/:studentScaleId", getStudentByScaleId);

@@ -164,6 +164,54 @@ export const listStudents = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+export const exportStudents = async (req: Request, res: Response) => {
+  try {
+    const search = (req.query.search as string) || "";
+    const event = (req.query.event as string) || "";
+    const dateRange = (req.query.dateRange as string) || "";
+
+    const query: any = {};
+
+    // Search filter
+    if (search.trim()) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { studentScaleId: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Event filter
+    if (event && event.trim() && event !== "all") {
+      query.events = { $regex: `^${event}$`, $options: "i" };
+    }
+
+    // Date range filter
+    if (dateRange && dateRange.trim() && dateRange !== "all") {
+      query.date = dateRange;
+    }
+
+    const students = await Student.find(query)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      count: students.length,
+      students,
+    });
+  } catch (err: any) {
+    console.error("Export students error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to export students. Please try again later.",
+    });
+  }
+};
 // Get Student
 export const getStudent = async (req: Request, res: Response) => {
   try {

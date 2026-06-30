@@ -18,7 +18,10 @@ export interface IStudent extends Document {
   date: string;
   overallScore: number;
   overallAttendance: number;
-
+  specialisation?: string;
+  badge?: string;
+  photo?: string;
+  aadharNumber?: string;
   // QR Code fields
   qrCode?: string;
   qrToken?: string;
@@ -96,7 +99,29 @@ const StudentSchema = new Schema<IStudent>(
       type: Number,
       default: 0,
     },
-
+    specialisation: {
+      type: String,
+      required: true,
+      enum: ['Marketing', 'Finance', 'HR/Operations', 'Analytics'],
+      trim: true,
+    },
+    badge: {
+      type: String,
+      required: true,
+      enum: ['gold', 'silver', 'bronze'],
+      trim: true,
+    },
+    photo: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    aadharNumber: {
+      type: String,
+      required: false,
+      trim: true,
+      match: /^[0-9]{12}$/, // Must be exactly 12 digits if provided
+    },
     // QR Code fields
     qrCode: {
       type: String,
