@@ -14,7 +14,7 @@ export const createStudentSchema = Joi.object({
     })
   ).default([]),
   events: Joi.string().required().trim(),
-  date: Joi.date().required(),
+  date: Joi.string().required().trim(),
   overallScore: Joi.number().min(0).max(100).default(0),
   overallAttendance: Joi.number().min(0).max(100).default(0),
 });
@@ -33,7 +33,7 @@ export const updateStudentSchema = Joi.object({
     })
   ),
   events: Joi.string().trim(),
-  date: Joi.date(),
+   date: Joi.string().required().trim(),
   overallScore: Joi.number().min(0).max(100),
   overallAttendance: Joi.number().min(0).max(100),
 }).min(1); // At least one field to update

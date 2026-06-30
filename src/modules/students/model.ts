@@ -15,10 +15,10 @@ export interface IStudent extends Document {
   trainerFeedback?: string;
   subjectWiseScores: ISubjectWiseScore[];
   events: string;
-  date: Date;
+  date: string;
   overallScore: number;
   overallAttendance: number;
-  
+
   // QR Code fields
   qrCode?: string;
   qrToken?: string;
@@ -85,7 +85,7 @@ const StudentSchema = new Schema<IStudent>(
       trim: true,
     },
     date: {
-      type: Date,
+      type: String,
       required: true,
     },
     overallScore: {
@@ -96,7 +96,7 @@ const StudentSchema = new Schema<IStudent>(
       type: Number,
       default: 0,
     },
-    
+
     // QR Code fields
     qrCode: {
       type: String,
