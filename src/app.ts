@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 
 import { connectDB } from './config/db';
-
+import studentRoutes from './modules/students/routes';
 import contactRoutes from './modules/contact/routes';
 import joinersRoutes from './modules/joiners/routes';
 import authRoutes from './modules/auth/auth.routes';
@@ -54,7 +54,7 @@ app.use(
 
 // Routes
 app.use('/api/auth', authRoutes);
-
+app.use('/api/students', studentRoutes);
 app.use('/api/joiner', joinersRoutes);
 
 app.use('/api/contacts', contactRoutes);
