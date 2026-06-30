@@ -8,6 +8,7 @@ import {
   generateQR,
   regenerateQR,
   downloadQR,
+  getStudentByScaleId,
 } from "./controller";
 import { protect } from "../../middlewares/auth";
 
@@ -18,7 +19,7 @@ router.post("/", protect, createStudent);
 
 // List Students
 router.get("/", protect, listStudents);
-
+router.get("/certification/:studentScaleId", getStudentByScaleId);
 // Get Single Student
 router.get("/:id", protect, getStudent);
 

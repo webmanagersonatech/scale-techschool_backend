@@ -5,6 +5,7 @@ import { createStudentSchema, updateStudentSchema } from "./students.sanitize";
 import QRCode from 'qrcode';
 import { v4 as uuidv4 } from 'uuid';
 
+const BASE_URL = 'http://161.248.37.193:3003';
 // Create Student
 export const createStudent = async (req: AuthRequest, res: Response) => {
   const { error, value } = createStudentSchema.validate(req.body);
@@ -157,7 +158,31 @@ export const getStudent = async (req: Request, res: Response) => {
     });
   }
 };
+export const getStudentByScaleId = async (req: Request, res: Response) => {
+  try {
+    const studentScaleId = req.params.studentScaleId; // This will be the slug
 
+    const student = await Student.findOne({ studentScaleId });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found with this Scale ID",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: student,
+    });
+  } catch (err: any) {
+    console.error("Get student by scale ID error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch student. Please try again later.",
+    });
+  }
+};
 // Update Student
 export const updateStudent = async (req: Request, res: Response) => {
   try {
@@ -318,39 +343,38 @@ export const generateQR = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate unique QR data
-    const qrData = JSON.stringify({
-      studentId: student._id,
-      studentScaleId: student.studentScaleId,
-      name: student.name,
-      email: student.email,
-      events: student.events,
-      timestamp: new Date().toISOString(),
-      token: uuidv4(),
-      version: "1.0"
-    });
+    // Generate unique token for this QR
+    const qrToken = uuidv4();
 
-    // Generate QR code as base64
-    const qrCode = await QRCode.toDataURL(qrData, {
+    // Save token to student record for validation
+    student.qrToken = qrToken;
+    student.qrGeneratedAt = new Date();
+
+
+    const qrLink = `${BASE_URL}/students/certification/${student.studentScaleId}`;
+
+
+
+    // Generate QR code from URL
+    const qrCode = await QRCode.toDataURL(qrLink, {
       errorCorrectionLevel: 'H',
       margin: 2,
       width: 400,
       color: {
-        dark: '#0B1A2F', // Blue-900
+        dark: '#0B1A2F',
         light: '#FFFFFF'
       }
     });
 
     // Save QR code to student record
     student.qrCode = qrCode;
-    student.qrGeneratedAt = new Date();
-    student.qrToken = uuidv4(); // Store token for validation
     await student.save();
 
     return res.status(200).json({
       success: true,
       message: "QR Code generated successfully",
       qrCode: qrCode,
+      qrLink: qrLink,
       data: student
     });
   } catch (error: any) {
@@ -376,22 +400,19 @@ export const regenerateQR = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate new QR data with new token
-    const qrData = JSON.stringify({
-      studentId: student._id,
-      studentScaleId: student.studentScaleId,
-      name: student.name,
-      email: student.email,
-      events: student.events,
-      timestamp: new Date().toISOString(),
-      token: uuidv4(),
-      version: "1.0",
-      regenerated: true,
-      previousRegeneration: student.qrGeneratedAt || null
-    });
+    // Generate new token for regeneration
+    const qrToken = uuidv4();
 
-    // Generate QR code as base64
-    const qrCode = await QRCode.toDataURL(qrData, {
+    // Update student with new token
+    student.qrToken = qrToken;
+    student.qrGeneratedAt = new Date();
+    student.qrRegeneratedCount = (student.qrRegeneratedCount || 0) + 1;
+
+
+    const qrLink = `${BASE_URL}/students/certification/${student.studentScaleId}`;
+
+    // Generate QR code from URL
+    const qrCode = await QRCode.toDataURL(qrLink, {
       errorCorrectionLevel: 'H',
       margin: 2,
       width: 400,
@@ -403,15 +424,13 @@ export const regenerateQR = async (req: Request, res: Response) => {
 
     // Update student QR code
     student.qrCode = qrCode;
-    student.qrGeneratedAt = new Date();
-    student.qrToken = uuidv4(); // New token
-    student.qrRegeneratedCount = (student.qrRegeneratedCount || 0) + 1;
     await student.save();
 
     return res.status(200).json({
       success: true,
       message: "QR Code regenerated successfully",
       qrCode: qrCode,
+      qrLink: qrLink,
       data: student,
       regeneratedCount: student.qrRegeneratedCount
     });
@@ -424,6 +443,7 @@ export const regenerateQR = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 // Download QR Code for Student
 export const downloadQR = async (req: Request, res: Response) => {
